@@ -246,7 +246,9 @@ void MainWindow::setupConnections()
     connect(m_playPauseButton, &QPushButton::clicked, this, &MainWindow::onPlayPause);
     connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
     connect(m_nextButton, &QPushButton::clicked, this, &MainWindow::onNext);
+#ifdef Q_OS_ANDROID
     connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
+#endif
 
     // Seek
     connect(m_seekSlider, &QSlider::sliderPressed, this, [this]
@@ -317,12 +319,13 @@ void MainWindow::setupUI()
         layout->addStretch();
     }
 
+#ifdef Q_OS_ANDROID
     // ── Volumen ──────────────────────────────────────────────────
     QWidget *volumeWidget = new QWidget(centralWidget);
     {
         QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, volumeWidget);
 
-        m_volumeIcon = new QLabel("🔊", volumeWidget);
+        QLabel *volumeIcon = new QLabel("🔊", volumeWidget);
         m_volumeSlider = new QSlider(Qt::Horizontal, volumeWidget);
         m_volumeSlider->setObjectName("volumeSlider");
         m_volumeSlider->setRange(0, 100);
@@ -330,9 +333,10 @@ void MainWindow::setupUI()
         m_volumeSlider->setFixedWidth(100);
 
         layout->addStretch();
-        layout->addWidget(m_volumeIcon);
+        layout->addWidget(volumeIcon);
         layout->addWidget(m_volumeSlider);
     }
+#endif
 
     // ── Playlist ─────────────────────────────────────────────────
     m_playlistLabel = new QLabel("Lista de reproducción", centralWidget);
@@ -349,7 +353,9 @@ void MainWindow::setupUI()
     layout->addWidget(m_seekSlider);
     layout->addWidget(m_timeLabel);
     layout->addWidget(panelWidget);
+#ifdef Q_OS_ANDROID
     layout->addWidget(volumeWidget);
+#endif
     layout->addWidget(m_playlistLabel);
     layout->addWidget(m_playlistWidget);
 

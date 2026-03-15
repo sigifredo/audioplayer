@@ -5,6 +5,9 @@
 
 // qt
 #include <QMediaPlayer>
+#include <QUrl>
+#include <QList>
+#include <QStringList>
 
 class QAudioOutput;
 
@@ -29,7 +32,7 @@ public:
 public slots:
     void loadDirectory(const QString &path);
     void loadFile(const QUrl &url);
-    void loadUrls(const QList<QUrl> &urls);
+    void loadUrls(const QList<QUrl> &urls, const QStringList &names = {});
     void next();
     void pause();
     void play();
@@ -45,7 +48,7 @@ signals:
     void durationChanged(qint64 duration);
     void mediaLoaded(const QString &fileName);
     void errorOccurred(const QString &error);
-    void queueChanged(const QList<QUrl> &queue);
+    void queueChanged(const QList<QUrl> &queue, const QStringList &names);
     void currentIndexChanged(int index);
     void playbackFinished();
 
@@ -54,10 +57,12 @@ private slots:
 
 private:
     void loadQueue(int index);
+    QString nameForIndex(int index) const;
 
     QMediaPlayer *m_player;
     QAudioOutput *m_audioOutput;
     QList<QUrl> m_queue;
+    QStringList m_names;
     int m_currentIndex = -1;
 };
 

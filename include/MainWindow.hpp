@@ -57,8 +57,9 @@ private:
     QPushButton *m_playPauseButton;
     QPushButton *m_stopButton;
     QPushButton *m_nextButton;
+#ifdef Q_OS_ANDROID
     QSlider *m_volumeSlider;
-    QLabel *m_volumeIcon;
+#endif
 
     // Widgets — lista
     QListWidget *m_playlistWidget;
