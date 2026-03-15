@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_player(new AudioPlayer(this))
 {
     setWindowTitle("Audio Player");
-    setMinimumSize(420, 520);
     setupUI();
     setupConnections();
 }
