@@ -6,6 +6,7 @@
 // qt
 #include <QMainWindow>
 #include <QMediaPlayer>
+#include <QUrl>
 
 class AudioPlayer;
 class PlaylistDelegate;
@@ -35,7 +36,7 @@ private slots:
     void onPlayPause();
     void onPositionChanged(qint64 position);
     void onPrevious();
-    void onQueueChanged(const QList<QUrl> &queue);
+    void onQueueChanged(const QList<QUrl> &queue, const QStringList &names);
     void onSeek(int position);
     void onStop();
     void onVolumeChanged(int value);

@@ -173,8 +173,7 @@ void MainWindow::onOpenFolder()
 
 void MainWindow::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)
 {
-    m_playPauseButton->setText(
-        state == QMediaPlayer::PlayingState ? "⏸" : "▶");
+    m_playPauseButton->setText(state == QMediaPlayer::PlayingState ? "⏸" : "▶");
 }
 
 void MainWindow::onPlayPause()
@@ -207,9 +206,7 @@ void MainWindow::onQueueChanged(const QList<QUrl> &queue)
     m_playlistWidget->clear();
 
     for (const QUrl &url : queue)
-    {
         m_playlistWidget->addItem(QFileInfo(url.toLocalFile()).fileName());
-    }
 
     m_playlistLabel->setText(QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
 }
@@ -329,7 +326,7 @@ void MainWindow::setupUI()
         m_volumeSlider = new QSlider(Qt::Horizontal, volumeWidget);
         m_volumeSlider->setObjectName("volumeSlider");
         m_volumeSlider->setRange(0, 100);
-        m_volumeSlider->setValue(70);
+        m_volumeSlider->setValue(100);
         m_volumeSlider->setFixedWidth(100);
 
         layout->addStretch();
