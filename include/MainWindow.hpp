@@ -26,26 +26,26 @@ public:
     ~MainWindow() = default;
 
 private slots:
-    void onOpenFolder();
-    void onPlayPause();
-    void onStop();
-    void onNext();
-    void onPrevious();
-    void onSeek(int position);
-    void onVolumeChanged(int value);
-    void onPositionChanged(qint64 position);
-    void onDurationChanged(qint64 duration);
-    void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
-    void onMediaLoaded(const QString &fileName);
-    void onErrorOccurred(const QString &error);
-    void onQueueChanged(const QList<QUrl> &queue);
     void onCurrentIndexChanged(int index);
+    void onDurationChanged(qint64 duration);
+    void onErrorOccurred(const QString &error);
     void onListItemClicked(QListWidgetItem *item);
+    void onMediaLoaded(const QString &fileName);
+    void onNext();
+    void onOpenFolder();
+    void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
+    void onPlayPause();
+    void onPositionChanged(qint64 position);
+    void onPrevious();
+    void onQueueChanged(const QList<QUrl> &queue);
+    void onSeek(int position);
+    void onStop();
+    void onVolumeChanged(int value);
 
 private:
-    void setupUI();
-    void setupConnections();
     QString formatTime(qint64 ms) const;
+    void setupConnections();
+    void setupUI();
 
     // Audio
     AudioPlayer *m_player;

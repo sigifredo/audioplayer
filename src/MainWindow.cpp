@@ -18,6 +18,147 @@ MainWindow::MainWindow(QWidget *parent)
     setupConnections();
 }
 
+void MainWindow::onCurrentIndexChanged(int index)
+{
+    m_playlistDelegate->activeIndex = index;
+    m_playlistWidget->viewport()->update(); // fuerza repintado
+    m_playlistWidget->scrollToItem(m_playlistWidget->item(index));
+}
+
+void MainWindow::onDurationChanged(qint64 duration)
+{
+    m_seekSlider->setRange(0, (int)duration);
+}
+
+void MainWindow::onErrorOccurred(const QString &error)
+{
+    statusBar()->showMessage("Error: " + error, 5000);
+}
+
+void MainWindow::onListItemClicked(QListWidgetItem *item)
+{
+    int index = m_playlistWidget->row(item);
+    m_player->playIndex(index);
+}
+
+void MainWindow::onMediaLoaded(const QString &fileName)
+{
+    m_titleLabel->setText(fileName);
+}
+
+void MainWindow::onNext()
+{
+    m_player->next();
+}
+
+void MainWindow::onOpenFolder()
+{
+    QString path = QFileDialog::getExistingDirectory(this, "Seleccionar carpeta de audio", "");
+
+    if (!path.isEmpty())
+        m_player->loadDirectory(path);
+}
+
+void MainWindow::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)
+{
+    m_playPauseButton->setText(
+        state == QMediaPlayer::PlayingState ? "⏸" : "▶");
+}
+
+void MainWindow::onPlayPause()
+{
+    m_player->isPlaying() ? m_player->pause() : m_player->play();
+}
+
+void MainWindow::onPositionChanged(qint64 position)
+{
+    if (!m_userSeeking)
+    {
+        m_seekSlider->blockSignals(true);
+        m_seekSlider->setValue((int)position);
+        m_seekSlider->blockSignals(false);
+    }
+
+    m_timeLabel->setText(
+        QString("%1 / %2")
+            .arg(formatTime(position))
+            .arg(formatTime(m_player->duration())));
+}
+
+void MainWindow::onPrevious()
+{
+    m_player->previous();
+}
+
+void MainWindow::onQueueChanged(const QList<QUrl> &queue)
+{
+    m_playlistWidget->clear();
+
+    for (const QUrl &url : queue)
+    {
+        m_playlistWidget->addItem(QFileInfo(url.toLocalFile()).fileName());
+    }
+
+    m_playlistLabel->setText(QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
+}
+
+void MainWindow::onSeek(int position)
+{
+    if (!m_userSeeking)
+        m_player->seek((qint64)position);
+}
+
+void MainWindow::onStop()
+{
+    m_player->stop();
+}
+
+void MainWindow::onVolumeChanged(int value)
+{
+    m_player->setVolume(value / 100.0f);
+}
+
+QString MainWindow::formatTime(qint64 ms) const
+{
+    qint64 s = ms / 1000;
+    return QString("%1:%2")
+        .arg(s / 60, 2, 10, QChar('0'))
+        .arg(s % 60, 2, 10, QChar('0'));
+}
+
+void MainWindow::setupConnections()
+{
+    // UI → Player
+    connect(m_openButton, &QPushButton::clicked, this, &MainWindow::onOpenFolder);
+    connect(m_previousButton, &QPushButton::clicked, this, &MainWindow::onPrevious);
+    connect(m_playPauseButton, &QPushButton::clicked, this, &MainWindow::onPlayPause);
+    connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
+    connect(m_nextButton, &QPushButton::clicked, this, &MainWindow::onNext);
+    connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
+
+    // Seek
+    connect(m_seekSlider, &QSlider::sliderPressed, this, [this]
+            { m_userSeeking = true; });
+    connect(m_seekSlider, &QSlider::sliderReleased, this, [this]
+            {
+                m_userSeeking = false;
+                onSeek(m_seekSlider->value()); });
+    connect(m_seekSlider, &QSlider::valueChanged, this, &MainWindow::onSeek);
+
+    // Playlist — doble clic para reproducir
+    connect(m_playlistWidget, &QListWidget::itemClicked,
+            this, &MainWindow::onListItemClicked);
+
+    // Player → UI
+    connect(m_player, &AudioPlayer::positionChanged, this, &MainWindow::onPositionChanged);
+    connect(m_player, &AudioPlayer::durationChanged, this, &MainWindow::onDurationChanged);
+    connect(m_player, &AudioPlayer::playbackStateChanged, this, &MainWindow::onPlaybackStateChanged);
+    connect(m_player, &AudioPlayer::mediaLoaded, this, &MainWindow::onMediaLoaded);
+    connect(m_player, &AudioPlayer::errorOccurred, this, &MainWindow::onErrorOccurred);
+    connect(m_player, &AudioPlayer::queueChanged, this, &MainWindow::onQueueChanged);
+    connect(m_player, &AudioPlayer::currentIndexChanged, this, &MainWindow::onCurrentIndexChanged);
+}
+
 void MainWindow::setupUI()
 {
     QWidget *centralWidget = new QWidget(this);
@@ -104,147 +245,4 @@ void MainWindow::setupUI()
     m_playlistWidget->setItemDelegate(m_playlistDelegate);
 
     setCentralWidget(centralWidget);
-}
-
-void MainWindow::setupConnections()
-{
-    // UI → Player
-    connect(m_openButton, &QPushButton::clicked, this, &MainWindow::onOpenFolder);
-    connect(m_previousButton, &QPushButton::clicked, this, &MainWindow::onPrevious);
-    connect(m_playPauseButton, &QPushButton::clicked, this, &MainWindow::onPlayPause);
-    connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
-    connect(m_nextButton, &QPushButton::clicked, this, &MainWindow::onNext);
-    connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
-
-    // Seek
-    connect(m_seekSlider, &QSlider::sliderPressed, this, [this]
-            { m_userSeeking = true; });
-    connect(m_seekSlider, &QSlider::sliderReleased, this, [this]
-            {
-        m_userSeeking = false;
-        onSeek(m_seekSlider->value()); });
-    connect(m_seekSlider, &QSlider::valueChanged, this, &MainWindow::onSeek);
-
-    // Playlist — doble clic para reproducir
-    connect(m_playlistWidget, &QListWidget::itemClicked,
-            this, &MainWindow::onListItemClicked);
-
-    // Player → UI
-    connect(m_player, &AudioPlayer::positionChanged, this, &MainWindow::onPositionChanged);
-    connect(m_player, &AudioPlayer::durationChanged, this, &MainWindow::onDurationChanged);
-    connect(m_player, &AudioPlayer::playbackStateChanged, this, &MainWindow::onPlaybackStateChanged);
-    connect(m_player, &AudioPlayer::mediaLoaded, this, &MainWindow::onMediaLoaded);
-    connect(m_player, &AudioPlayer::errorOccurred, this, &MainWindow::onErrorOccurred);
-    connect(m_player, &AudioPlayer::queueChanged, this, &MainWindow::onQueueChanged);
-    connect(m_player, &AudioPlayer::currentIndexChanged, this, &MainWindow::onCurrentIndexChanged);
-}
-
-// ── Slots ────────────────────────────────────────────────────────
-
-void MainWindow::onOpenFolder()
-{
-    QString path = QFileDialog::getExistingDirectory(this, "Seleccionar carpeta de audio", "");
-
-    if (!path.isEmpty())
-        m_player->loadDirectory(path);
-}
-
-void MainWindow::onPlayPause()
-{
-    m_player->isPlaying() ? m_player->pause() : m_player->play();
-}
-
-void MainWindow::onStop()
-{
-    m_player->stop();
-}
-
-void MainWindow::onNext()
-{
-    m_player->next();
-}
-
-void MainWindow::onPrevious()
-{
-    m_player->previous();
-}
-
-void MainWindow::onSeek(int position)
-{
-    if (!m_userSeeking)
-        m_player->seek((qint64)position);
-}
-
-void MainWindow::onVolumeChanged(int value)
-{
-    m_player->setVolume(value / 100.0f);
-}
-
-void MainWindow::onPositionChanged(qint64 position)
-{
-    if (!m_userSeeking)
-    {
-        m_seekSlider->blockSignals(true);
-        m_seekSlider->setValue((int)position);
-        m_seekSlider->blockSignals(false);
-    }
-
-    m_timeLabel->setText(
-        QString("%1 / %2")
-            .arg(formatTime(position))
-            .arg(formatTime(m_player->duration())));
-}
-
-void MainWindow::onDurationChanged(qint64 duration)
-{
-    m_seekSlider->setRange(0, (int)duration);
-}
-
-void MainWindow::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)
-{
-    m_playPauseButton->setText(
-        state == QMediaPlayer::PlayingState ? "⏸" : "▶");
-}
-
-void MainWindow::onMediaLoaded(const QString &fileName)
-{
-    m_titleLabel->setText(fileName);
-}
-
-void MainWindow::onErrorOccurred(const QString &error)
-{
-    statusBar()->showMessage("Error: " + error, 5000);
-}
-
-void MainWindow::onQueueChanged(const QList<QUrl> &queue)
-{
-    m_playlistWidget->clear();
-
-    for (const QUrl &url : queue)
-    {
-        m_playlistWidget->addItem(QFileInfo(url.toLocalFile()).fileName());
-    }
-
-    m_playlistLabel->setText(QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
-}
-
-void MainWindow::onCurrentIndexChanged(int index)
-{
-    m_playlistDelegate->activeIndex = index;
-    m_playlistWidget->viewport()->update(); // fuerza repintado
-    m_playlistWidget->scrollToItem(m_playlistWidget->item(index));
-}
-
-void MainWindow::onListItemClicked(QListWidgetItem *item)
-{
-    int index = m_playlistWidget->row(item);
-    m_player->playIndex(index);
-}
-
-QString MainWindow::formatTime(qint64 ms) const
-{
-    qint64 s = ms / 1000;
-    return QString("%1:%2")
-        .arg(s / 60, 2, 10, QChar('0'))
-        .arg(s % 60, 2, 10, QChar('0'));
 }
