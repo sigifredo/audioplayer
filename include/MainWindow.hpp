@@ -27,7 +27,6 @@ private slots:
     void onOpenFile();
     void onPlayPause();
     void onStop();
-    void onSeek(int position);
     void onVolumeChanged(int value);
     void onPositionChanged(qint64 position);
     void onDurationChanged(qint64 duration);

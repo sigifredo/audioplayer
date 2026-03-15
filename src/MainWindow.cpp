@@ -93,8 +93,8 @@ void MainWindow::setupConnections()
             { m_userSeeking = true; });
     connect(m_seekSlider, &QSlider::sliderReleased, this, [this]
             {
-        m_userSeeking = false;
-        m_player->seek((qint64)m_seekSlider->value()); });
+                m_userSeeking = false;
+                m_player->seek((qint64)m_seekSlider->value()); });
 
     // Player → UI
     connect(m_player, &AudioPlayer::positionChanged,

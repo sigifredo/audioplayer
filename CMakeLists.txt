@@ -21,7 +21,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Multimedia
 )
 
-qt_add_executable(AudioPlayer
+qt_add_executable(audioplayer
     include/AudioPlayer.hpp
     include/MainWindow.hpp
     src/main.cpp
@@ -29,20 +29,20 @@ qt_add_executable(AudioPlayer
     src/MainWindow.cpp
 )
 
-qt_add_resources(AudioPlayer "resources"
+qt_add_resources(audioplayer "resources"
     PREFIX "/"
     FILES
         resources/styles.qss
 )
 
-target_link_libraries(AudioPlayer PRIVATE
+target_link_libraries(audioplayer PRIVATE
     Qt6::Core
     Qt6::Widgets
     Qt6::Multimedia
 )
 
 if(ANDROID)
-    set_target_properties(AudioPlayer PROPERTIES
+    set_target_properties(audioplayer PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR
         "${CMAKE_CURRENT_SOURCE_DIR}/android"
     )
