@@ -58,7 +58,7 @@ private:
     QPushButton *m_playPauseButton;
     QPushButton *m_stopButton;
     QPushButton *m_nextButton;
-#ifdef Q_OS_ANDROID
+#ifndef Q_OS_ANDROID
     QSlider *m_volumeSlider;
 #endif
 

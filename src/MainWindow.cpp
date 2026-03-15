@@ -8,6 +8,7 @@
 // qt
 #include <QBoxLayout>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
@@ -42,7 +43,6 @@ static void requestAndroidPermissions(MainWindow *mainWindow)
 
     if (result != 0)
     {
-        // Permiso no concedido — solicitar
         QJniObject::callStaticMethod<void>(
             "org/qtproject/qt/android/QtNative",
             "requestPermissions",
@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::onCurrentIndexChanged(int index)
 {
     m_playlistDelegate->setActiveIndex(index);
-    m_playlistWidget->viewport()->update(); // fuerza repintado
+    m_playlistWidget->viewport()->update();
     m_playlistWidget->scrollToItem(m_playlistWidget->item(index));
 }
 
@@ -111,14 +111,11 @@ void MainWindow::onOpenFolder()
         if (requestCode != 43 || resultCode != -1 || !data.isValid())
             return;
 
-        // Obtener URI del árbol
         QJniObject treeUri = data.callObjectMethod("getData", "()Landroid/net/Uri;");
         if (!treeUri.isValid()) return;
 
-        // Obtener contexto y ContentResolver
         QJniObject context = QNativeInterface::QAndroidApplication::context();
 
-        // Obtener DocumentFile desde el URI del árbol
         QJniObject docFile = QJniObject::callStaticObjectMethod(
             "androidx/documentfile/provider/DocumentFile",
             "fromTreeUri",
@@ -128,7 +125,6 @@ void MainWindow::onOpenFolder()
 
         if (!docFile.isValid()) return;
 
-        // Listar archivos
         QJniObject files = docFile.callObjectMethod(
             "listFiles",
             "()[Landroidx/documentfile/provider/DocumentFile;");
@@ -136,6 +132,7 @@ void MainWindow::onOpenFolder()
         if (!files.isValid()) return;
 
         QList<QUrl> urls;
+        QStringList names;
         QJniEnvironment env;
         jobjectArray array = files.object<jobjectArray>();
         jsize count = env->GetArrayLength(array);
@@ -144,28 +141,28 @@ void MainWindow::onOpenFolder()
             QJniObject file(env->GetObjectArrayElement(array, i));
             if (!file.isValid()) continue;
 
-            // Verificar tipo MIME
             QJniObject mimeType = file.callObjectMethod("getType", "()Ljava/lang/String;");
             if (!mimeType.isValid()) continue;
+            if (!mimeType.toString().startsWith("audio/")) continue;
 
-            QString mime = mimeType.toString();
-            if (!mime.startsWith("audio/")) continue;
-
-            // Obtener URI
             QJniObject uri = file.callObjectMethod("getUri", "()Landroid/net/Uri;");
             if (!uri.isValid()) continue;
 
+            QJniObject nameObj = file.callObjectMethod("getName", "()Ljava/lang/String;");
+            QString name = nameObj.isValid() ? nameObj.toString() : QString();
+
             QString uriStr = uri.callObjectMethod("toString", "()Ljava/lang/String;").toString();
             urls.append(QUrl(uriStr));
+            names.append(name);
         }
 
         if (!urls.isEmpty())
-            m_player->loadUrls(urls);
+            m_player->loadUrls(urls, names);
         else
             this->statusBar()->showMessage("No se encontraron archivos de audio", 3000); });
 #else
-    QString path = QFileDialog::getExistingDirectory(this, "Seleccionar carpeta de audio", "");
-
+    QString path = QFileDialog::getExistingDirectory(
+        this, "Seleccionar carpeta de audio", "");
     if (!path.isEmpty())
         m_player->loadDirectory(path);
 #endif
@@ -201,14 +198,27 @@ void MainWindow::onPrevious()
     m_player->previous();
 }
 
-void MainWindow::onQueueChanged(const QList<QUrl> &queue)
+void MainWindow::onQueueChanged(const QList<QUrl> &queue, const QStringList &names)
 {
     m_playlistWidget->clear();
 
-    for (const QUrl &url : queue)
-        m_playlistWidget->addItem(QFileInfo(url.toLocalFile()).fileName());
+    for (int i = 0; i < queue.size(); i++)
+    {
+        QString name;
+        if (i < names.size() && !names.at(i).isEmpty())
+            name = names.at(i);
+        else
+        {
+            QString localPath = queue.at(i).toLocalFile();
+            name = localPath.isEmpty()
+                       ? queue.at(i).fileName()
+                       : QFileInfo(localPath).fileName();
+        }
+        m_playlistWidget->addItem(name);
+    }
 
-    m_playlistLabel->setText(QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
+    m_playlistLabel->setText(
+        QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
 }
 
 void MainWindow::onSeek(int position)
@@ -237,17 +247,15 @@ QString MainWindow::formatTime(qint64 ms) const
 
 void MainWindow::setupConnections()
 {
-    // UI → Player
     connect(m_openButton, &QPushButton::clicked, this, &MainWindow::onOpenFolder);
     connect(m_previousButton, &QPushButton::clicked, this, &MainWindow::onPrevious);
     connect(m_playPauseButton, &QPushButton::clicked, this, &MainWindow::onPlayPause);
     connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
     connect(m_nextButton, &QPushButton::clicked, this, &MainWindow::onNext);
-#ifdef Q_OS_ANDROID
+#ifndef Q_OS_ANDROID
     connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
 #endif
 
-    // Seek
     connect(m_seekSlider, &QSlider::sliderPressed, this, [this]
             { m_userSeeking = true; });
     connect(m_seekSlider, &QSlider::sliderReleased, this, [this]
@@ -256,11 +264,9 @@ void MainWindow::setupConnections()
                 onSeek(m_seekSlider->value()); });
     connect(m_seekSlider, &QSlider::valueChanged, this, &MainWindow::onSeek);
 
-    // Playlist — doble clic para reproducir
     connect(m_playlistWidget, &QListWidget::itemClicked,
             this, &MainWindow::onListItemClicked);
 
-    // Player → UI
     connect(m_player, &AudioPlayer::positionChanged, this, &MainWindow::onPositionChanged);
     connect(m_player, &AudioPlayer::durationChanged, this, &MainWindow::onDurationChanged);
     connect(m_player, &AudioPlayer::playbackStateChanged, this, &MainWindow::onPlaybackStateChanged);
@@ -316,7 +322,7 @@ void MainWindow::setupUI()
         layout->addStretch();
     }
 
-#ifdef Q_OS_ANDROID
+#ifndef Q_OS_ANDROID
     // ── Volumen ──────────────────────────────────────────────────
     QWidget *volumeWidget = new QWidget(centralWidget);
     {
@@ -324,6 +330,7 @@ void MainWindow::setupUI()
 
         QLabel *volumeIcon = new QLabel("🔊", volumeWidget);
         m_volumeSlider = new QSlider(Qt::Horizontal, volumeWidget);
+
         m_volumeSlider->setObjectName("volumeSlider");
         m_volumeSlider->setRange(0, 100);
         m_volumeSlider->setValue(100);
@@ -343,21 +350,21 @@ void MainWindow::setupUI()
     m_playlistWidget->setObjectName("playlistWidget");
     m_playlistWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    // ── Layouts ──────────────────────────────────────────────────
+    m_playlistDelegate = new PlaylistDelegate(this);
+    m_playlistWidget->setItemDelegate(m_playlistDelegate);
+
+    // ── Layout principal ─────────────────────────────────────────
     layout->setContentsMargins(20, 20, 20, 20);
     layout->setSpacing(12);
     layout->addWidget(m_titleLabel);
     layout->addWidget(m_seekSlider);
     layout->addWidget(m_timeLabel);
     layout->addWidget(panelWidget);
-#ifdef Q_OS_ANDROID
+#ifndef Q_OS_ANDROID
     layout->addWidget(volumeWidget);
 #endif
     layout->addWidget(m_playlistLabel);
     layout->addWidget(m_playlistWidget);
-
-    m_playlistDelegate = new PlaylistDelegate(this);
-    m_playlistWidget->setItemDelegate(m_playlistDelegate);
 
     setCentralWidget(centralWidget);
 }
