@@ -32,4 +32,4 @@ cmake -S . -B $BUILD_DIR \
 
 cmake --build $BUILD_DIR && ninja -C $BUILD_DIR apk
 
-$SDK/build-tools/36.0.0/apksigner sign --ks android/audioplayer.keystore --ks-key-alias audioplayer --out audioplayer-signed.apk ./build/android/android-build/build/outputs/apk/release/android-build-release-unsigned.apk
+$SDK/build-tools/36.0.0/apksigner sign --ks android/audioplayer.keystore --ks-key-alias audioplayer --out build/audioplayer-signed.apk ./build/android/android-build/build/outputs/apk/release/android-build-release-unsigned.apk

@@ -35,6 +35,22 @@ void AudioPlayer::loadFile(const QUrl &url)
     loadQueue(0);
 }
 
+void AudioPlayer::loadUrls(const QList<QUrl> &urls)
+{
+    m_queue.clear();
+
+    for (const QUrl &url : urls)
+        m_queue.append(url);
+
+    std::sort(m_queue.begin(), m_queue.end(), [](const QUrl &a, const QUrl &b)
+              { return a.fileName().toLower() < b.fileName().toLower(); });
+
+    emit queueChanged(m_queue);
+
+    if (!m_queue.isEmpty())
+        loadQueue(0);
+}
+
 void AudioPlayer::loadDirectory(const QString &path)
 {
     m_queue.clear();

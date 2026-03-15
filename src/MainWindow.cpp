@@ -99,10 +99,76 @@ void MainWindow::onNext()
 
 void MainWindow::onOpenFolder()
 {
+#ifdef Q_OS_ANDROID
+    QJniObject intent("android/content/Intent");
+    QJniObject action = QJniObject::fromString("android.intent.action.OPEN_DOCUMENT_TREE");
+    intent.callObjectMethod("setAction",
+                            "(Ljava/lang/String;)Landroid/content/Intent;",
+                            action.object<jstring>());
+
+    QtAndroidPrivate::startActivity(intent, 43, [this](int requestCode, int resultCode, const QJniObject &data)
+                                    {
+        if (requestCode != 43 || resultCode != -1 || !data.isValid())
+            return;
+
+        // Obtener URI del árbol
+        QJniObject treeUri = data.callObjectMethod("getData", "()Landroid/net/Uri;");
+        if (!treeUri.isValid()) return;
+
+        // Obtener contexto y ContentResolver
+        QJniObject context = QNativeInterface::QAndroidApplication::context();
+
+        // Obtener DocumentFile desde el URI del árbol
+        QJniObject docFile = QJniObject::callStaticObjectMethod(
+            "androidx/documentfile/provider/DocumentFile",
+            "fromTreeUri",
+            "(Landroid/content/Context;Landroid/net/Uri;)Landroidx/documentfile/provider/DocumentFile;",
+            context.object(),
+            treeUri.object());
+
+        if (!docFile.isValid()) return;
+
+        // Listar archivos
+        QJniObject files = docFile.callObjectMethod(
+            "listFiles",
+            "()[Landroidx/documentfile/provider/DocumentFile;");
+
+        if (!files.isValid()) return;
+
+        QList<QUrl> urls;
+        QJniEnvironment env;
+        jobjectArray array = files.object<jobjectArray>();
+        jsize count = env->GetArrayLength(array);
+
+        for (jsize i = 0; i < count; i++) {
+            QJniObject file(env->GetObjectArrayElement(array, i));
+            if (!file.isValid()) continue;
+
+            // Verificar tipo MIME
+            QJniObject mimeType = file.callObjectMethod("getType", "()Ljava/lang/String;");
+            if (!mimeType.isValid()) continue;
+
+            QString mime = mimeType.toString();
+            if (!mime.startsWith("audio/")) continue;
+
+            // Obtener URI
+            QJniObject uri = file.callObjectMethod("getUri", "()Landroid/net/Uri;");
+            if (!uri.isValid()) continue;
+
+            QString uriStr = uri.callObjectMethod("toString", "()Ljava/lang/String;").toString();
+            urls.append(QUrl(uriStr));
+        }
+
+        if (!urls.isEmpty())
+            m_player->loadUrls(urls);
+        else
+            this->statusBar()->showMessage("No se encontraron archivos de audio", 3000); });
+#else
     QString path = QFileDialog::getExistingDirectory(this, "Seleccionar carpeta de audio", "");
 
     if (!path.isEmpty())
         m_player->loadDirectory(path);
+#endif
 }
 
 void MainWindow::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)

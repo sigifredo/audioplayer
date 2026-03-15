@@ -27,16 +27,17 @@ public:
     static QStringList supportedExtensions();
 
 public slots:
-    void loadFile(const QUrl &url);
     void loadDirectory(const QString &path);
-    void playIndex(int index);
-    void play();
-    void pause();
-    void stop();
+    void loadFile(const QUrl &url);
+    void loadUrls(const QList<QUrl> &urls);
     void next();
+    void pause();
+    void play();
+    void playIndex(int index);
     void previous();
     void seek(qint64 position);
     void setVolume(float volume);
+    void stop();
 
 signals:
     void playbackStateChanged(QMediaPlayer::PlaybackState state);
