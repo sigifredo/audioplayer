@@ -2,6 +2,7 @@
 
 // own
 #include <MainWindow.hpp>
+#include <PlaylistDelegate.hpp>
 
 // qt
 #include <QStatusBar>
@@ -91,6 +92,9 @@ void MainWindow::setupUI()
     mainLayout->addLayout(volumeLayout);
     mainLayout->addWidget(m_playlistLabel);
     mainLayout->addWidget(m_playlistWidget);
+
+    m_playlistDelegate = new PlaylistDelegate(this);
+    m_playlistWidget->setItemDelegate(m_playlistDelegate);
 }
 
 void MainWindow::setupConnections()
@@ -113,8 +117,8 @@ void MainWindow::setupConnections()
     connect(m_seekSlider, &QSlider::valueChanged, this, &MainWindow::onSeek);
 
     // Playlist — doble clic para reproducir
-    connect(m_playlistWidget, &QListWidget::itemDoubleClicked,
-            this, &MainWindow::onListItemDoubleClicked);
+    connect(m_playlistWidget, &QListWidget::itemClicked,
+            this, &MainWindow::onListItemClicked);
 
     // Player → UI
     connect(m_player, &AudioPlayer::positionChanged,
@@ -220,21 +224,12 @@ void MainWindow::onQueueChanged(const QList<QUrl> &queue)
 
 void MainWindow::onCurrentIndexChanged(int index)
 {
-    // Resaltar pista activa en la lista
-    for (int i = 0; i < m_playlistWidget->count(); ++i)
-    {
-        auto *item = m_playlistWidget->item(i);
-        QFont font = item->font();
-        font.setBold(i == index);
-        item->setFont(font);
-        item->setForeground(i == index
-                                ? QColor("#e94560")
-                                : QColor("#e0e0e0"));
-    }
+    m_playlistDelegate->activeIndex = index;
+    m_playlistWidget->viewport()->update(); // fuerza repintado
     m_playlistWidget->scrollToItem(m_playlistWidget->item(index));
 }
 
-void MainWindow::onListItemDoubleClicked(QListWidgetItem *item)
+void MainWindow::onListItemClicked(QListWidgetItem *item)
 {
     int index = m_playlistWidget->row(item);
     m_player->playIndex(index);

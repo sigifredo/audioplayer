@@ -17,6 +17,8 @@
 #include <QSplitter>
 #include <QFileDialog>
 
+class PlaylistDelegate;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -40,7 +42,7 @@ private slots:
     void onErrorOccurred(const QString &error);
     void onQueueChanged(const QList<QUrl> &queue);
     void onCurrentIndexChanged(int index);
-    void onListItemDoubleClicked(QListWidgetItem *item);
+    void onListItemClicked(QListWidgetItem *item);
 
 private:
     void setupUI();
@@ -69,6 +71,7 @@ private:
 
     // Estado
     bool m_userSeeking = false;
+    PlaylistDelegate *m_playlistDelegate;
 };
 
 #endif
