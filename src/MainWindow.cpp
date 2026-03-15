@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::onCurrentIndexChanged(int index)
 {
-    m_playlistDelegate->activeIndex = index;
+    m_playlistDelegate->setActiveIndex(index);
     m_playlistWidget->viewport()->update(); // fuerza repintado
     m_playlistWidget->scrollToItem(m_playlistWidget->item(index));
 }

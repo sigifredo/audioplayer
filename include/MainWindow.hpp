@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMainWindow>
+#include <QMediaPlayer>
 #include <QPushButton>
 #include <QSlider>
 #include <QSplitter>

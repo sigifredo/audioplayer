@@ -24,9 +24,11 @@ find_package(Qt6 REQUIRED COMPONENTS
 qt_add_executable(audioplayer
     include/AudioPlayer.hpp
     include/MainWindow.hpp
+    include/PlaylistDelegate.hpp
     src/main.cpp
     src/AudioPlayer.cpp
     src/MainWindow.cpp
+    src/PlaylistDelegate.cpp
 )
 
 qt_add_resources(audioplayer "resources"
