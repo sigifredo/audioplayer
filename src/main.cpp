@@ -9,6 +9,13 @@
 
 int main(int argc, char **argv)
 {
+    /*
+    qputenv("QT_MEDIA_BACKEND", "ffmpeg");
+    qputenv("QT_MEDIA_BACKEND", "ffmpeg");
+    qputenv("QT_FFMPEG_NO_HW_CODECS", "1");
+    qputenv("PULSE_LATENCY_MSEC", "30");
+    */
+
     QApplication app(argc, argv);
 
     // Cargar estilos QSS

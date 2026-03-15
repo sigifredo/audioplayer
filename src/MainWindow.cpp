@@ -181,7 +181,11 @@ void MainWindow::onVolumeChanged(int value)
 void MainWindow::onPositionChanged(qint64 position)
 {
     if (!m_userSeeking)
+    {
+        m_seekSlider->blockSignals(true);
         m_seekSlider->setValue((int)position);
+        m_seekSlider->blockSignals(false);
+    }
 
     m_timeLabel->setText(
         QString("%1 / %2")
