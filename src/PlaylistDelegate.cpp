@@ -24,9 +24,7 @@ void PlaylistDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         painter->setFont(f);
     }
     else
-    {
         painter->setFont(opt.font);
-    }
 
     painter->setPen((index.row() == m_activeIndex) ? QColor("#e94560") : QColor("#e0e0e0"));
     painter->drawText(opt.rect.adjusted(10, 0, -10, 0), Qt::AlignVCenter, opt.text);
