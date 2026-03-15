@@ -4,7 +4,7 @@
 #include <AudioPlayer.hpp>
 
 // qt
-#include <QFileInfo>
+#include <QAudioOutput>
 #include <QDirIterator>
 
 AudioPlayer::AudioPlayer(QObject *parent)

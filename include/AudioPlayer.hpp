@@ -4,12 +4,9 @@
 #define AUDIOPLAYER_HPP
 
 // qt
-#include <QObject>
 #include <QMediaPlayer>
-#include <QAudioOutput>
-#include <QUrl>
-#include <QList>
-#include <QDir>
+
+class QAudioOutput;
 
 class AudioPlayer : public QObject
 {

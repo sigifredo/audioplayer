@@ -3,20 +3,18 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
-// own
-#include <AudioPlayer.hpp>
-
 // qt
-#include <QMainWindow>
+#include <QFileDialog>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QListWidget>
+#include <QMainWindow>
 #include <QPushButton>
 #include <QSlider>
-#include <QListWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QSplitter>
-#include <QFileDialog>
+#include <QVBoxLayout>
 
+class AudioPlayer;
 class PlaylistDelegate;
 
 class MainWindow : public QMainWindow
@@ -53,7 +51,6 @@ private:
     AudioPlayer *m_player;
 
     // Widgets — controles
-    QWidget *m_centralWidget;
     QLabel *m_titleLabel;
     QLabel *m_timeLabel;
     QSlider *m_seekSlider;

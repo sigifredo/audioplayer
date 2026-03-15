@@ -2,11 +2,12 @@
 
 // own
 #include <MainWindow.hpp>
+#include <AudioPlayer.hpp>
 #include <PlaylistDelegate.hpp>
 
 // qt
-#include <QStatusBar>
 #include <QFileInfo>
+#include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_player(new AudioPlayer(this))
@@ -19,82 +20,90 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::setupUI()
 {
-    m_centralWidget = new QWidget(this);
-    setCentralWidget(m_centralWidget);
+    QWidget *centralWidget = new QWidget(this);
+    QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom, centralWidget);
 
     // ── Título ───────────────────────────────────────────────────
-    m_titleLabel = new QLabel("Sin archivo cargado", this);
+    m_titleLabel = new QLabel("Sin archivo cargado", centralWidget);
     m_titleLabel->setAlignment(Qt::AlignCenter);
     m_titleLabel->setObjectName("titleLabel");
 
     // ── Seek slider ──────────────────────────────────────────────
-    m_seekSlider = new QSlider(Qt::Horizontal, this);
+    m_seekSlider = new QSlider(Qt::Horizontal, centralWidget);
     m_seekSlider->setObjectName("seekSlider");
     m_seekSlider->setRange(0, 0);
 
     // ── Tiempo ───────────────────────────────────────────────────
-    m_timeLabel = new QLabel("00:00 / 00:00", this);
+    m_timeLabel = new QLabel("00:00 / 00:00", centralWidget);
     m_timeLabel->setAlignment(Qt::AlignCenter);
     m_timeLabel->setObjectName("timeLabel");
 
     // ── Botones ──────────────────────────────────────────────────
-    m_openButton = new QPushButton("📂", this);
-    m_previousButton = new QPushButton("⏮", this);
-    m_playPauseButton = new QPushButton("▶", this);
-    m_stopButton = new QPushButton("⏹", this);
-    m_nextButton = new QPushButton("⏭", this);
-
-    for (auto *btn : {m_openButton, m_previousButton,
-                      m_playPauseButton, m_stopButton, m_nextButton})
+    QWidget *panelWidget = new QWidget(centralWidget);
     {
-        btn->setObjectName("controlButton");
-        btn->setFixedSize(48, 48);
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, panelWidget);
+
+        m_openButton = new QPushButton("📂", panelWidget);
+        m_previousButton = new QPushButton("⏮", panelWidget);
+        m_playPauseButton = new QPushButton("▶", panelWidget);
+        m_stopButton = new QPushButton("⏹", panelWidget);
+        m_nextButton = new QPushButton("⏭", panelWidget);
+
+        for (auto *btn : {m_openButton, m_previousButton, m_playPauseButton, m_stopButton, m_nextButton})
+        {
+            btn->setObjectName("controlButton");
+            btn->setFixedSize(48, 48);
+        }
+
+        layout->addStretch();
+        layout->addWidget(m_openButton);
+        layout->addWidget(m_previousButton);
+        layout->addWidget(m_playPauseButton);
+        layout->addWidget(m_stopButton);
+        layout->addWidget(m_nextButton);
+        layout->addStretch();
     }
 
     // ── Volumen ──────────────────────────────────────────────────
-    m_volumeIcon = new QLabel("🔊", this);
-    m_volumeSlider = new QSlider(Qt::Horizontal, this);
-    m_volumeSlider->setObjectName("volumeSlider");
-    m_volumeSlider->setRange(0, 100);
-    m_volumeSlider->setValue(70);
-    m_volumeSlider->setFixedWidth(100);
+    QWidget *volumeWidget = new QWidget(centralWidget);
+    {
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, volumeWidget);
+
+        m_volumeIcon = new QLabel("🔊", volumeWidget);
+        m_volumeSlider = new QSlider(Qt::Horizontal, volumeWidget);
+        m_volumeSlider->setObjectName("volumeSlider");
+        m_volumeSlider->setRange(0, 100);
+        m_volumeSlider->setValue(70);
+        m_volumeSlider->setFixedWidth(100);
+
+        layout->addStretch();
+        layout->addWidget(m_volumeIcon);
+        layout->addWidget(m_volumeSlider);
+    }
 
     // ── Playlist ─────────────────────────────────────────────────
-    m_playlistLabel = new QLabel("Lista de reproducción", this);
+    m_playlistLabel = new QLabel("Lista de reproducción", centralWidget);
     m_playlistLabel->setObjectName("playlistLabel");
 
-    m_playlistWidget = new QListWidget(this);
+    m_playlistWidget = new QListWidget(centralWidget);
     m_playlistWidget->setObjectName("playlistWidget");
     m_playlistWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // ── Layouts ──────────────────────────────────────────────────
-    QHBoxLayout *controlsLayout = new QHBoxLayout();
-    controlsLayout->addStretch();
-    controlsLayout->addWidget(m_openButton);
-    controlsLayout->addWidget(m_previousButton);
-    controlsLayout->addWidget(m_playPauseButton);
-    controlsLayout->addWidget(m_stopButton);
-    controlsLayout->addWidget(m_nextButton);
-    controlsLayout->addStretch();
-
-    QHBoxLayout *volumeLayout = new QHBoxLayout();
-    volumeLayout->addStretch();
-    volumeLayout->addWidget(m_volumeIcon);
-    volumeLayout->addWidget(m_volumeSlider);
-
-    QVBoxLayout *mainLayout = new QVBoxLayout(m_centralWidget);
-    mainLayout->setContentsMargins(20, 20, 20, 20);
-    mainLayout->setSpacing(12);
-    mainLayout->addWidget(m_titleLabel);
-    mainLayout->addWidget(m_seekSlider);
-    mainLayout->addWidget(m_timeLabel);
-    mainLayout->addLayout(controlsLayout);
-    mainLayout->addLayout(volumeLayout);
-    mainLayout->addWidget(m_playlistLabel);
-    mainLayout->addWidget(m_playlistWidget);
+    layout->setContentsMargins(20, 20, 20, 20);
+    layout->setSpacing(12);
+    layout->addWidget(m_titleLabel);
+    layout->addWidget(m_seekSlider);
+    layout->addWidget(m_timeLabel);
+    layout->addWidget(panelWidget);
+    layout->addWidget(volumeWidget);
+    layout->addWidget(m_playlistLabel);
+    layout->addWidget(m_playlistWidget);
 
     m_playlistDelegate = new PlaylistDelegate(this);
     m_playlistWidget->setItemDelegate(m_playlistDelegate);
+
+    setCentralWidget(centralWidget);
 }
 
 void MainWindow::setupConnections()
@@ -121,28 +130,21 @@ void MainWindow::setupConnections()
             this, &MainWindow::onListItemClicked);
 
     // Player → UI
-    connect(m_player, &AudioPlayer::positionChanged,
-            this, &MainWindow::onPositionChanged);
-    connect(m_player, &AudioPlayer::durationChanged,
-            this, &MainWindow::onDurationChanged);
-    connect(m_player, &AudioPlayer::playbackStateChanged,
-            this, &MainWindow::onPlaybackStateChanged);
-    connect(m_player, &AudioPlayer::mediaLoaded,
-            this, &MainWindow::onMediaLoaded);
-    connect(m_player, &AudioPlayer::errorOccurred,
-            this, &MainWindow::onErrorOccurred);
-    connect(m_player, &AudioPlayer::queueChanged,
-            this, &MainWindow::onQueueChanged);
-    connect(m_player, &AudioPlayer::currentIndexChanged,
-            this, &MainWindow::onCurrentIndexChanged);
+    connect(m_player, &AudioPlayer::positionChanged, this, &MainWindow::onPositionChanged);
+    connect(m_player, &AudioPlayer::durationChanged, this, &MainWindow::onDurationChanged);
+    connect(m_player, &AudioPlayer::playbackStateChanged, this, &MainWindow::onPlaybackStateChanged);
+    connect(m_player, &AudioPlayer::mediaLoaded, this, &MainWindow::onMediaLoaded);
+    connect(m_player, &AudioPlayer::errorOccurred, this, &MainWindow::onErrorOccurred);
+    connect(m_player, &AudioPlayer::queueChanged, this, &MainWindow::onQueueChanged);
+    connect(m_player, &AudioPlayer::currentIndexChanged, this, &MainWindow::onCurrentIndexChanged);
 }
 
 // ── Slots ────────────────────────────────────────────────────────
 
 void MainWindow::onOpenFolder()
 {
-    QString path = QFileDialog::getExistingDirectory(
-        this, "Seleccionar carpeta de audio", "");
+    QString path = QFileDialog::getExistingDirectory(this, "Seleccionar carpeta de audio", "");
+
     if (!path.isEmpty())
         m_player->loadDirectory(path);
 }
@@ -217,13 +219,13 @@ void MainWindow::onErrorOccurred(const QString &error)
 void MainWindow::onQueueChanged(const QList<QUrl> &queue)
 {
     m_playlistWidget->clear();
+
     for (const QUrl &url : queue)
     {
-        QString name = QFileInfo(url.toLocalFile()).fileName();
-        m_playlistWidget->addItem(name);
+        m_playlistWidget->addItem(QFileInfo(url.toLocalFile()).fileName());
     }
-    m_playlistLabel->setText(
-        QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
+
+    m_playlistLabel->setText(QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
 }
 
 void MainWindow::onCurrentIndexChanged(int index)
