@@ -4,19 +4,16 @@
 #define MAINWINDOW_HPP
 
 // qt
-#include <QFileDialog>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QListWidget>
 #include <QMainWindow>
 #include <QMediaPlayer>
-#include <QPushButton>
-#include <QSlider>
-#include <QSplitter>
-#include <QVBoxLayout>
 
 class AudioPlayer;
 class PlaylistDelegate;
+class QLabel;
+class QListWidget;
+class QListWidgetItem;
+class QPushButton;
+class QSlider;
 
 class MainWindow : public QMainWindow
 {

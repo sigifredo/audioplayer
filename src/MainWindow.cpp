@@ -6,7 +6,11 @@
 #include <PlaylistDelegate.hpp>
 
 // qt
-#include <QFileInfo>
+#include <QBoxLayout>
+#include <QFileDialog>
+#include <QLabel>
+#include <QListWidget>
+#include <QPushButton>
 #include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
