@@ -49,3 +49,5 @@ if(ANDROID)
         "${CMAKE_CURRENT_SOURCE_DIR}/android"
     )
 endif()
+
+qt_policy(SET QTP0002 NEW)

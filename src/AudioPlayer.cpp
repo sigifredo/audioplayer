@@ -11,7 +11,7 @@ AudioPlayer::AudioPlayer(QObject *parent)
     : QObject(parent), m_player(new QMediaPlayer(this)), m_audioOutput(new QAudioOutput(this))
 {
     m_player->setAudioOutput(m_audioOutput);
-    m_audioOutput->setVolume(0.7f);
+    m_audioOutput->setVolume(1.0f);
 
     connect(m_player, &QMediaPlayer::playbackStateChanged, this, &AudioPlayer::onPlaybackStateChanged);
     connect(m_player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
