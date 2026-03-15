@@ -9,12 +9,22 @@
 #include <QFileInfo>
 
 AudioPlayer::AudioPlayer(QObject *parent)
-    : QObject(parent), m_player(new QMediaPlayer(this)), m_audioOutput(new QAudioOutput(this))
+    : QObject(parent),
+      m_player(new QMediaPlayer(this)),
+      m_audioOutput(new QAudioOutput(this))
 {
     m_player->setAudioOutput(m_audioOutput);
     m_audioOutput->setVolume(1.0f);
 
     connect(m_player, &QMediaPlayer::playbackStateChanged, this, &AudioPlayer::onPlaybackStateChanged);
+
+    // ── Avance automático al terminar una pista ──────────────────
+    connect(m_player, &QMediaPlayer::mediaStatusChanged,
+            this, [this](QMediaPlayer::MediaStatus status)
+            {
+                if (status == QMediaPlayer::EndOfMedia)
+                    next(); });
+
     connect(m_player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &AudioPlayer::durationChanged);
     connect(m_player, &QMediaPlayer::errorOccurred, this, [this](QMediaPlayer::Error, const QString &errorString)
@@ -124,6 +134,7 @@ void AudioPlayer::next()
 {
     if (m_queue.isEmpty())
         return;
+
     loadQueue((m_currentIndex + 1) % m_queue.size());
 }
 
@@ -147,9 +158,6 @@ void AudioPlayer::setVolume(float volume) { m_audioOutput->setVolume(volume); }
 void AudioPlayer::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)
 {
     emit playbackStateChanged(state);
-
-    if (state == QMediaPlayer::StoppedState && m_player->mediaStatus() == QMediaPlayer::EndOfMedia)
-        next();
 }
 
 // ── Getters ──────────────────────────────────────────────────────

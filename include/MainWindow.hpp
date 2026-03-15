@@ -14,7 +14,7 @@ class QLabel;
 class QListWidget;
 class QListWidgetItem;
 class QPushButton;
-class QSlider;
+class SeekSlider;
 
 class MainWindow : public QMainWindow
 {
@@ -37,7 +37,6 @@ private slots:
     void onPositionChanged(qint64 position);
     void onPrevious();
     void onQueueChanged(const QList<QUrl> &queue, const QStringList &names);
-    void onSeek(int position);
     void onStop();
     void onVolumeChanged(int value);
 
@@ -52,14 +51,14 @@ private:
     // Widgets — controles
     QLabel *m_titleLabel;
     QLabel *m_timeLabel;
-    QSlider *m_seekSlider;
+    SeekSlider *m_seekSlider;
     QPushButton *m_openButton;
     QPushButton *m_previousButton;
     QPushButton *m_playPauseButton;
     QPushButton *m_stopButton;
     QPushButton *m_nextButton;
 #ifndef Q_OS_ANDROID
-    QSlider *m_volumeSlider;
+    SeekSlider *m_volumeSlider;
 #endif
 
     // Widgets — lista
@@ -67,7 +66,6 @@ private:
     QLabel *m_playlistLabel;
 
     // Estado
-    bool m_userSeeking = false;
     PlaylistDelegate *m_playlistDelegate;
 };
 

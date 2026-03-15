@@ -28,10 +28,12 @@ qt_add_executable(audioplayer
     include/AudioPlayer.hpp
     include/MainWindow.hpp
     include/PlaylistDelegate.hpp
+    include/SeekSlider.hpp
     src/main.cpp
     src/AudioPlayer.cpp
     src/MainWindow.cpp
     src/PlaylistDelegate.cpp
+    src/SeekSlider.cpp
 )
 
 qt_add_resources(audioplayer "resources"

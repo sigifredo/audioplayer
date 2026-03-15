@@ -4,6 +4,7 @@
 #include <MainWindow.hpp>
 #include <AudioPlayer.hpp>
 #include <PlaylistDelegate.hpp>
+#include <SeekSlider.hpp>
 
 // qt
 #include <QBoxLayout>
@@ -180,12 +181,9 @@ void MainWindow::onPlayPause()
 
 void MainWindow::onPositionChanged(qint64 position)
 {
-    if (!m_userSeeking)
-    {
-        m_seekSlider->blockSignals(true);
-        m_seekSlider->setValue((int)position);
-        m_seekSlider->blockSignals(false);
-    }
+    m_seekSlider->blockSignals(true);
+    m_seekSlider->setValue((int)position);
+    m_seekSlider->blockSignals(false);
 
     m_timeLabel->setText(
         QString("%1 / %2")
@@ -221,12 +219,6 @@ void MainWindow::onQueueChanged(const QList<QUrl> &queue, const QStringList &nam
         QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
 }
 
-void MainWindow::onSeek(int position)
-{
-    if (!m_userSeeking)
-        m_player->seek((qint64)position);
-}
-
 void MainWindow::onStop()
 {
     m_player->stop();
@@ -256,13 +248,8 @@ void MainWindow::setupConnections()
     connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
 #endif
 
-    connect(m_seekSlider, &QSlider::sliderPressed, this, [this]
-            { m_userSeeking = true; });
-    connect(m_seekSlider, &QSlider::sliderReleased, this, [this]
-            {
-                m_userSeeking = false;
-                onSeek(m_seekSlider->value()); });
-    connect(m_seekSlider, &QSlider::valueChanged, this, &MainWindow::onSeek);
+    connect(m_seekSlider, &SeekSlider::seekRequested, this, [this](int value)
+            { m_player->seek((qint64)value); });
 
     connect(m_playlistWidget, &QListWidget::itemClicked,
             this, &MainWindow::onListItemClicked);
@@ -287,7 +274,7 @@ void MainWindow::setupUI()
     m_titleLabel->setObjectName("titleLabel");
 
     // ── Seek slider ──────────────────────────────────────────────
-    m_seekSlider = new QSlider(Qt::Horizontal, centralWidget);
+    m_seekSlider = new SeekSlider(centralWidget);
     m_seekSlider->setObjectName("seekSlider");
     m_seekSlider->setRange(0, 0);
 
@@ -329,7 +316,7 @@ void MainWindow::setupUI()
         QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, volumeWidget);
 
         QLabel *volumeIcon = new QLabel("🔊", volumeWidget);
-        m_volumeSlider = new QSlider(Qt::Horizontal, volumeWidget);
+        m_volumeSlider = new SeekSlider(volumeWidget);
 
         m_volumeSlider->setObjectName("volumeSlider");
         m_volumeSlider->setRange(0, 100);
