@@ -1,5 +1,3 @@
-
-
 // own
 #include <MainWindow.hpp>
 #include <AudioPlayer.hpp>
@@ -244,8 +242,15 @@ void MainWindow::setupConnections()
     connect(m_playPauseButton, &QPushButton::clicked, this, &MainWindow::onPlayPause);
     connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
     connect(m_nextButton, &QPushButton::clicked, this, &MainWindow::onNext);
+
+    connect(m_rewindButton, &QPushButton::clicked, this, [this]
+            { m_player->seek(qBound(0LL, m_player->position() - 10000LL, m_player->duration())); });
+
+    connect(m_forwardButton, &QPushButton::clicked, this, [this]
+            { m_player->seek(qBound(0LL, m_player->position() + 10000LL, m_player->duration())); });
+
 #ifndef Q_OS_ANDROID
-    connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
+    connect(m_volumeSlider, &SeekSlider::seekRequested, this, &MainWindow::onVolumeChanged);
 #endif
 
     connect(m_seekSlider, &SeekSlider::seekRequested, this, [this](int value)
@@ -290,23 +295,30 @@ void MainWindow::setupUI()
 
         m_openButton = new QPushButton("📂", panelWidget);
         m_previousButton = new QPushButton("⏮", panelWidget);
+        m_rewindButton = new QPushButton("⏪", panelWidget);
         m_playPauseButton = new QPushButton("▶", panelWidget);
         m_stopButton = new QPushButton("⏹", panelWidget);
+        m_forwardButton = new QPushButton("⏩", panelWidget);
         m_nextButton = new QPushButton("⏭", panelWidget);
 
-        for (auto *btn : {m_openButton, m_previousButton, m_playPauseButton, m_stopButton, m_nextButton})
+        for (auto *btn : {m_openButton, m_previousButton, m_rewindButton, m_playPauseButton, m_forwardButton, m_stopButton, m_nextButton})
         {
             btn->setObjectName("controlButton");
             btn->setFixedSize(48, 48);
         }
 
         layout->addStretch();
-        layout->addWidget(m_openButton);
+        layout->addSpacing(20);
         layout->addWidget(m_previousButton);
+        layout->addWidget(m_rewindButton);
+        layout->addSpacing(20);
         layout->addWidget(m_playPauseButton);
         layout->addWidget(m_stopButton);
+        layout->addSpacing(20);
+        layout->addWidget(m_forwardButton);
         layout->addWidget(m_nextButton);
         layout->addStretch();
+        layout->addWidget(m_openButton);
     }
 
 #ifndef Q_OS_ANDROID

@@ -54,7 +54,9 @@ private:
     SeekSlider *m_seekSlider;
     QPushButton *m_openButton;
     QPushButton *m_previousButton;
+    QPushButton *m_rewindButton;
     QPushButton *m_playPauseButton;
+    QPushButton *m_forwardButton;
     QPushButton *m_stopButton;
     QPushButton *m_nextButton;
 #ifndef Q_OS_ANDROID
