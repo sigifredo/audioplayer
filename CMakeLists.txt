@@ -40,6 +40,7 @@ qt_add_resources(audioplayer "resources"
     PREFIX "/"
     FILES
         resources/styles.qss
+        resources/icon.png
 )
 
 target_link_libraries(audioplayer PRIVATE

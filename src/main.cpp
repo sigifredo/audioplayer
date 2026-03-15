@@ -6,10 +6,12 @@
 // qt
 #include <QApplication>
 #include <QFile>
+#include <QIcon>
 
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/resources/icon.png"));
 
     // Cargar estilos QSS
     QFile styleFile(":/resources/styles.qss");
