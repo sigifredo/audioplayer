@@ -291,15 +291,41 @@ void MainWindow::setupUI()
     // ── Botones ──────────────────────────────────────────────────
     QWidget *panelWidget = new QWidget(centralWidget);
     {
-        QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, panelWidget);
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom, panelWidget);
 
-        m_openButton = new QPushButton("📂", panelWidget);
-        m_previousButton = new QPushButton("⏮", panelWidget);
-        m_rewindButton = new QPushButton("⏪", panelWidget);
-        m_playPauseButton = new QPushButton("▶", panelWidget);
-        m_stopButton = new QPushButton("⏹", panelWidget);
-        m_forwardButton = new QPushButton("⏩", panelWidget);
-        m_nextButton = new QPushButton("⏭", panelWidget);
+        QWidget *panelRow1Widget = new QWidget(panelWidget);
+        {
+            QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, panelRow1Widget);
+
+            m_playPauseButton = new QPushButton("▶", panelRow1Widget);
+            m_stopButton = new QPushButton("⏹", panelRow1Widget);
+            m_openButton = new QPushButton("📂", panelRow1Widget);
+
+            layout->addStretch();
+            layout->addWidget(m_playPauseButton);
+            layout->addWidget(m_stopButton);
+            layout->addSpacing(20);
+            layout->addWidget(m_openButton);
+            layout->addStretch();
+        }
+
+        QWidget *panelRow2Widget = new QWidget(panelWidget);
+        {
+            QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, panelRow2Widget);
+
+            m_previousButton = new QPushButton("⏮", panelRow2Widget);
+            m_rewindButton = new QPushButton("⏪", panelRow2Widget);
+            m_forwardButton = new QPushButton("⏩", panelRow2Widget);
+            m_nextButton = new QPushButton("⏭", panelRow2Widget);
+
+            layout->addStretch();
+            layout->addWidget(m_previousButton);
+            layout->addWidget(m_rewindButton);
+            layout->addSpacing(20);
+            layout->addWidget(m_forwardButton);
+            layout->addWidget(m_nextButton);
+            layout->addStretch();
+        }
 
         for (auto *btn : {m_openButton, m_previousButton, m_rewindButton, m_playPauseButton, m_forwardButton, m_stopButton, m_nextButton})
         {
@@ -307,18 +333,8 @@ void MainWindow::setupUI()
             btn->setFixedSize(48, 48);
         }
 
-        layout->addStretch();
-        layout->addSpacing(20);
-        layout->addWidget(m_previousButton);
-        layout->addWidget(m_rewindButton);
-        layout->addSpacing(20);
-        layout->addWidget(m_playPauseButton);
-        layout->addWidget(m_stopButton);
-        layout->addSpacing(20);
-        layout->addWidget(m_forwardButton);
-        layout->addWidget(m_nextButton);
-        layout->addStretch();
-        layout->addWidget(m_openButton);
+        layout->addWidget(panelRow1Widget);
+        layout->addWidget(panelRow2Widget);
     }
 
 #ifndef Q_OS_ANDROID
