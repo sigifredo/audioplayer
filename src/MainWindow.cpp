@@ -13,12 +13,55 @@
 #include <QPushButton>
 #include <QStatusBar>
 
+#ifdef Q_OS_ANDROID
+#include <QJniObject>
+#include <QJniEnvironment>
+#include <QOperatingSystemVersion>
+#include <private/qandroidextras_p.h>
+
+static void requestAndroidPermissions(MainWindow *mainWindow)
+{
+    QString permission;
+
+    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Android13)
+        permission = "android.permission.READ_MEDIA_AUDIO";
+    else
+        permission = "android.permission.READ_EXTERNAL_STORAGE";
+
+    QJniObject activity = QJniObject::callStaticObjectMethod(
+        "org/qtproject/qt/android/QtNative",
+        "activity",
+        "()Landroid/app/Activity;");
+
+    QJniObject jPermission = QJniObject::fromString(permission);
+
+    jint result = activity.callMethod<jint>(
+        "checkSelfPermission",
+        "(Ljava/lang/String;)I",
+        jPermission.object<jstring>());
+
+    if (result != 0)
+    {
+        // Permiso no concedido — solicitar
+        QJniObject::callStaticMethod<void>(
+            "org/qtproject/qt/android/QtNative",
+            "requestPermissions",
+            "([Ljava/lang/String;I)V");
+        mainWindow->statusBar()->showMessage("Solicitando permiso de audio...", 3000);
+    }
+}
+#endif
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_player(new AudioPlayer(this))
 {
     setWindowTitle("Audio Player");
     setupUI();
     setupConnections();
+
+#ifdef Q_OS_ANDROID
+    requestAndroidPermissions(this);
+#endif
 }
 
 void MainWindow::onCurrentIndexChanged(int index)

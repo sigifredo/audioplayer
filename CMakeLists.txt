@@ -12,7 +12,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# include_directories(include ${PROJECT_BINARY_DIR}/include/)
 include_directories(include)
 
 find_package(Qt6 REQUIRED COMPONENTS
@@ -20,6 +19,10 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     Multimedia
 )
+
+if(ANDROID)
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+endif()
 
 qt_add_executable(audioplayer
     include/AudioPlayer.hpp
@@ -44,10 +47,14 @@ target_link_libraries(audioplayer PRIVATE
 )
 
 if(ANDROID)
+    find_package(Qt6 REQUIRED COMPONENTS CorePrivate)
+    target_link_libraries(audioplayer PRIVATE Qt6::CorePrivate)
+
     set_target_properties(audioplayer PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR
         "${CMAKE_CURRENT_SOURCE_DIR}/android"
     )
+    target_compile_definitions(audioplayer PRIVATE Q_OS_ANDROID)
 endif()
 
 qt_policy(SET QTP0002 NEW)
