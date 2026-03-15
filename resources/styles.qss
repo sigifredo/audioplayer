@@ -22,6 +22,14 @@ QLabel#timeLabel {
     font-size: 12px;
 }
 
+/* ── Encabezado playlist ── */
+QLabel#playlistLabel {
+    color: #a0a0c0;
+    font-size: 12px;
+    padding: 4px 0px;
+    border-bottom: 1px solid #16213e;
+}
+
 /* ── Botones de control ── */
 QPushButton#controlButton {
     background-color: #16213e;
@@ -39,6 +47,12 @@ QPushButton#controlButton:hover {
 QPushButton#controlButton:pressed {
     background-color: #c73652;
     border-color: #c73652;
+}
+
+QPushButton#controlButton:disabled {
+    background-color: #16213e;
+    border-color: #3a3a5c;
+    color: #3a3a5c;
 }
 
 /* ── Slider de posición ── */
@@ -88,6 +102,52 @@ QSlider#volumeSlider::handle:horizontal {
 
 QSlider#volumeSlider::handle:horizontal:hover {
     background-color: #e0e0e0;
+}
+
+/* ── Lista de reproducción ── */
+QListWidget#playlistWidget {
+    background-color: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 8px;
+    padding: 4px;
+    outline: none;
+}
+
+QListWidget#playlistWidget::item {
+    color: #e0e0e0;
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+
+QListWidget#playlistWidget::item:hover {
+    background-color: #0f3460;
+}
+
+QListWidget#playlistWidget::item:selected {
+    background-color: #0f3460;
+    color: #ffffff;
+}
+
+/* ── Scrollbar de la playlist ── */
+QScrollBar:vertical {
+    background-color: #16213e;
+    width: 6px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #0f3460;
+    border-radius: 3px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #e94560;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0px;
 }
 
 /* ── Status bar ── */

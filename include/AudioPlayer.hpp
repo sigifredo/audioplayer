@@ -8,6 +8,8 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QUrl>
+#include <QList>
+#include <QDir>
 
 class AudioPlayer : public QObject
 {
@@ -21,12 +23,21 @@ public:
     qint64 position() const;
     qint64 duration() const;
     float volume() const;
+    int currentIndex() const;
+    int queueSize() const;
+
+    // Formatos soportados
+    static QStringList supportedExtensions();
 
 public slots:
     void loadFile(const QUrl &url);
+    void loadDirectory(const QString &path);
+    void playIndex(int index);
     void play();
     void pause();
     void stop();
+    void next();
+    void previous();
     void seek(qint64 position);
     void setVolume(float volume);
 
@@ -36,10 +47,20 @@ signals:
     void durationChanged(qint64 duration);
     void mediaLoaded(const QString &fileName);
     void errorOccurred(const QString &error);
+    void queueChanged(const QList<QUrl> &queue);
+    void currentIndexChanged(int index);
+    void playbackFinished();
+
+private slots:
+    void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
 
 private:
+    void loadQueue(int index);
+
     QMediaPlayer *m_player;
     QAudioOutput *m_audioOutput;
+    QList<QUrl> m_queue;
+    int m_currentIndex = -1;
 };
 
 #endif

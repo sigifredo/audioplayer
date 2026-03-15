@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_player(new AudioPlayer(this))
 {
     setWindowTitle("Audio Player");
-    setMinimumSize(400, 220);
+    setMinimumSize(420, 520);
     setupUI();
     setupConnections();
 }
@@ -21,35 +21,36 @@ void MainWindow::setupUI()
     m_centralWidget = new QWidget(this);
     setCentralWidget(m_centralWidget);
 
-    // --- Título ---
+    // ── Título ───────────────────────────────────────────────────
     m_titleLabel = new QLabel("Sin archivo cargado", this);
     m_titleLabel->setAlignment(Qt::AlignCenter);
     m_titleLabel->setObjectName("titleLabel");
 
-    // --- Slider de posición ---
+    // ── Seek slider ──────────────────────────────────────────────
     m_seekSlider = new QSlider(Qt::Horizontal, this);
     m_seekSlider->setObjectName("seekSlider");
     m_seekSlider->setRange(0, 0);
 
-    // --- Tiempo ---
+    // ── Tiempo ───────────────────────────────────────────────────
     m_timeLabel = new QLabel("00:00 / 00:00", this);
     m_timeLabel->setAlignment(Qt::AlignCenter);
     m_timeLabel->setObjectName("timeLabel");
 
-    // --- Botones de control ---
+    // ── Botones ──────────────────────────────────────────────────
     m_openButton = new QPushButton("📂", this);
+    m_previousButton = new QPushButton("⏮", this);
     m_playPauseButton = new QPushButton("▶", this);
     m_stopButton = new QPushButton("⏹", this);
+    m_nextButton = new QPushButton("⏭", this);
 
-    m_openButton->setObjectName("controlButton");
-    m_playPauseButton->setObjectName("controlButton");
-    m_stopButton->setObjectName("controlButton");
+    for (auto *btn : {m_openButton, m_previousButton,
+                      m_playPauseButton, m_stopButton, m_nextButton})
+    {
+        btn->setObjectName("controlButton");
+        btn->setFixedSize(48, 48);
+    }
 
-    m_openButton->setFixedSize(48, 48);
-    m_playPauseButton->setFixedSize(48, 48);
-    m_stopButton->setFixedSize(48, 48);
-
-    // --- Volumen ---
+    // ── Volumen ──────────────────────────────────────────────────
     m_volumeIcon = new QLabel("🔊", this);
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
     m_volumeSlider->setObjectName("volumeSlider");
@@ -57,12 +58,22 @@ void MainWindow::setupUI()
     m_volumeSlider->setValue(70);
     m_volumeSlider->setFixedWidth(100);
 
-    // --- Layouts ---
+    // ── Playlist ─────────────────────────────────────────────────
+    m_playlistLabel = new QLabel("Lista de reproducción", this);
+    m_playlistLabel->setObjectName("playlistLabel");
+
+    m_playlistWidget = new QListWidget(this);
+    m_playlistWidget->setObjectName("playlistWidget");
+    m_playlistWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    // ── Layouts ──────────────────────────────────────────────────
     QHBoxLayout *controlsLayout = new QHBoxLayout();
     controlsLayout->addStretch();
     controlsLayout->addWidget(m_openButton);
+    controlsLayout->addWidget(m_previousButton);
     controlsLayout->addWidget(m_playPauseButton);
     controlsLayout->addWidget(m_stopButton);
+    controlsLayout->addWidget(m_nextButton);
     controlsLayout->addStretch();
 
     QHBoxLayout *volumeLayout = new QHBoxLayout();
@@ -78,23 +89,32 @@ void MainWindow::setupUI()
     mainLayout->addWidget(m_timeLabel);
     mainLayout->addLayout(controlsLayout);
     mainLayout->addLayout(volumeLayout);
+    mainLayout->addWidget(m_playlistLabel);
+    mainLayout->addWidget(m_playlistWidget);
 }
 
 void MainWindow::setupConnections()
 {
     // UI → Player
-    connect(m_openButton, &QPushButton::clicked, this, &MainWindow::onOpenFile);
+    connect(m_openButton, &QPushButton::clicked, this, &MainWindow::onOpenFolder);
+    connect(m_previousButton, &QPushButton::clicked, this, &MainWindow::onPrevious);
     connect(m_playPauseButton, &QPushButton::clicked, this, &MainWindow::onPlayPause);
     connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
+    connect(m_nextButton, &QPushButton::clicked, this, &MainWindow::onNext);
     connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
 
-    // Seek: distinguir arrastre manual vs. actualización del player
+    // Seek
     connect(m_seekSlider, &QSlider::sliderPressed, this, [this]
             { m_userSeeking = true; });
     connect(m_seekSlider, &QSlider::sliderReleased, this, [this]
             {
-                m_userSeeking = false;
-                m_player->seek((qint64)m_seekSlider->value()); });
+        m_userSeeking = false;
+        onSeek(m_seekSlider->value()); });
+    connect(m_seekSlider, &QSlider::valueChanged, this, &MainWindow::onSeek);
+
+    // Playlist — doble clic para reproducir
+    connect(m_playlistWidget, &QListWidget::itemDoubleClicked,
+            this, &MainWindow::onListItemDoubleClicked);
 
     // Player → UI
     connect(m_player, &AudioPlayer::positionChanged,
@@ -107,15 +127,20 @@ void MainWindow::setupConnections()
             this, &MainWindow::onMediaLoaded);
     connect(m_player, &AudioPlayer::errorOccurred,
             this, &MainWindow::onErrorOccurred);
+    connect(m_player, &AudioPlayer::queueChanged,
+            this, &MainWindow::onQueueChanged);
+    connect(m_player, &AudioPlayer::currentIndexChanged,
+            this, &MainWindow::onCurrentIndexChanged);
 }
 
-void MainWindow::onOpenFile()
+// ── Slots ────────────────────────────────────────────────────────
+
+void MainWindow::onOpenFolder()
 {
-    QString path = QFileDialog::getOpenFileName(
-        this, "Abrir archivo de audio", "",
-        "Audio (*.mp3 *.wav *.ogg *.flac *.m4a)");
+    QString path = QFileDialog::getExistingDirectory(
+        this, "Seleccionar carpeta de audio", "");
     if (!path.isEmpty())
-        m_player->loadFile(QUrl::fromLocalFile(path));
+        m_player->loadDirectory(path);
 }
 
 void MainWindow::onPlayPause()
@@ -128,6 +153,22 @@ void MainWindow::onStop()
     m_player->stop();
 }
 
+void MainWindow::onNext()
+{
+    m_player->next();
+}
+
+void MainWindow::onPrevious()
+{
+    m_player->previous();
+}
+
+void MainWindow::onSeek(int position)
+{
+    if (!m_userSeeking)
+        m_player->seek((qint64)position);
+}
+
 void MainWindow::onVolumeChanged(int value)
 {
     m_player->setVolume(value / 100.0f);
@@ -138,11 +179,10 @@ void MainWindow::onPositionChanged(qint64 position)
     if (!m_userSeeking)
         m_seekSlider->setValue((int)position);
 
-    qint64 duration = m_player->duration();
     m_timeLabel->setText(
         QString("%1 / %2")
             .arg(formatTime(position))
-            .arg(formatTime(duration)));
+            .arg(formatTime(m_player->duration())));
 }
 
 void MainWindow::onDurationChanged(qint64 duration)
@@ -159,12 +199,45 @@ void MainWindow::onPlaybackStateChanged(QMediaPlayer::PlaybackState state)
 void MainWindow::onMediaLoaded(const QString &fileName)
 {
     m_titleLabel->setText(fileName);
-    m_player->play();
 }
 
 void MainWindow::onErrorOccurred(const QString &error)
 {
     statusBar()->showMessage("Error: " + error, 5000);
+}
+
+void MainWindow::onQueueChanged(const QList<QUrl> &queue)
+{
+    m_playlistWidget->clear();
+    for (const QUrl &url : queue)
+    {
+        QString name = QFileInfo(url.toLocalFile()).fileName();
+        m_playlistWidget->addItem(name);
+    }
+    m_playlistLabel->setText(
+        QString("Lista de reproducción (%1 pistas)").arg(queue.size()));
+}
+
+void MainWindow::onCurrentIndexChanged(int index)
+{
+    // Resaltar pista activa en la lista
+    for (int i = 0; i < m_playlistWidget->count(); ++i)
+    {
+        auto *item = m_playlistWidget->item(i);
+        QFont font = item->font();
+        font.setBold(i == index);
+        item->setFont(font);
+        item->setForeground(i == index
+                                ? QColor("#e94560")
+                                : QColor("#e0e0e0"));
+    }
+    m_playlistWidget->scrollToItem(m_playlistWidget->item(index));
+}
+
+void MainWindow::onListItemDoubleClicked(QListWidgetItem *item)
+{
+    int index = m_playlistWidget->row(item);
+    m_player->playIndex(index);
 }
 
 QString MainWindow::formatTime(qint64 ms) const

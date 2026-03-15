@@ -11,8 +11,10 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSlider>
+#include <QListWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QSplitter>
 #include <QFileDialog>
 
 class MainWindow : public QMainWindow
@@ -24,15 +26,21 @@ public:
     ~MainWindow() = default;
 
 private slots:
-    void onOpenFile();
+    void onOpenFolder();
     void onPlayPause();
     void onStop();
+    void onNext();
+    void onPrevious();
+    void onSeek(int position);
     void onVolumeChanged(int value);
     void onPositionChanged(qint64 position);
     void onDurationChanged(qint64 duration);
     void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
     void onMediaLoaded(const QString &fileName);
     void onErrorOccurred(const QString &error);
+    void onQueueChanged(const QList<QUrl> &queue);
+    void onCurrentIndexChanged(int index);
+    void onListItemDoubleClicked(QListWidgetItem *item);
 
 private:
     void setupUI();
@@ -42,16 +50,22 @@ private:
     // Audio
     AudioPlayer *m_player;
 
-    // Widgets principales
+    // Widgets — controles
     QWidget *m_centralWidget;
     QLabel *m_titleLabel;
     QLabel *m_timeLabel;
     QSlider *m_seekSlider;
     QPushButton *m_openButton;
+    QPushButton *m_previousButton;
     QPushButton *m_playPauseButton;
     QPushButton *m_stopButton;
+    QPushButton *m_nextButton;
     QSlider *m_volumeSlider;
     QLabel *m_volumeIcon;
+
+    // Widgets — lista
+    QListWidget *m_playlistWidget;
+    QLabel *m_playlistLabel;
 
     // Estado
     bool m_userSeeking = false;
