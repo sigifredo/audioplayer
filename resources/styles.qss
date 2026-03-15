@@ -1,0 +1,98 @@
+/* ── Fondo general ── */
+QMainWindow, QWidget {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+    font-family: "Segoe UI", "Roboto", sans-serif;
+    font-size: 14px;
+}
+
+/* ── Título del archivo ── */
+QLabel#titleLabel {
+    color: #e94560;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #16213e;
+}
+
+/* ── Tiempo ── */
+QLabel#timeLabel {
+    color: #a0a0c0;
+    font-size: 12px;
+}
+
+/* ── Botones de control ── */
+QPushButton#controlButton {
+    background-color: #16213e;
+    color: #e0e0e0;
+    border: 2px solid #e94560;
+    border-radius: 24px;
+    font-size: 18px;
+}
+
+QPushButton#controlButton:hover {
+    background-color: #e94560;
+    color: #ffffff;
+}
+
+QPushButton#controlButton:pressed {
+    background-color: #c73652;
+    border-color: #c73652;
+}
+
+/* ── Slider de posición ── */
+QSlider#seekSlider::groove:horizontal {
+    height: 6px;
+    background-color: #16213e;
+    border-radius: 3px;
+}
+
+QSlider#seekSlider::sub-page:horizontal {
+    background-color: #e94560;
+    border-radius: 3px;
+}
+
+QSlider#seekSlider::handle:horizontal {
+    background-color: #ffffff;
+    border: 2px solid #e94560;
+    width: 16px;
+    height: 16px;
+    margin: -5px 0;
+    border-radius: 8px;
+}
+
+QSlider#seekSlider::handle:horizontal:hover {
+    background-color: #e94560;
+}
+
+/* ── Slider de volumen ── */
+QSlider#volumeSlider::groove:horizontal {
+    height: 4px;
+    background-color: #16213e;
+    border-radius: 2px;
+}
+
+QSlider#volumeSlider::sub-page:horizontal {
+    background-color: #0f3460;
+    border-radius: 2px;
+}
+
+QSlider#volumeSlider::handle:horizontal {
+    background-color: #a0a0c0;
+    width: 12px;
+    height: 12px;
+    margin: -4px 0;
+    border-radius: 6px;
+}
+
+QSlider#volumeSlider::handle:horizontal:hover {
+    background-color: #e0e0e0;
+}
+
+/* ── Status bar ── */
+QStatusBar {
+    background-color: #16213e;
+    color: #e94560;
+    font-size: 12px;
+}
